@@ -1,0 +1,62 @@
+{{ define "yield" }}
+<div class="title text-center text-white mt-4">
+    <h3>Create An Account</h3>
+</div>
+<form method="POST" action="/signup">
+    <style>
+        form {
+            width: 60vw;
+            margin: 20px auto;
+        }
+
+        input {
+            padding: 30px !important;
+        }
+
+        .input-group {
+            margin: 10px;
+        }
+
+        .input-group > button {
+            padding: 22px !important;
+            font-weight: bold !important;
+            background: #C07FF6 !important;
+            border: none !important;
+        }
+
+        .input-group-prepend {
+            min-width: 101px;
+        }
+
+        .input-group-text {
+            width: 100%;
+            background: #1E1E24;
+            color: white;
+            border: 1px solid rgb(11, 11, 12);
+        }
+    </style>
+    <fieldset>
+        <div class="input-group">
+            <div class="input-group-prepend">
+                <span class="input-group-text">Full Name</span>
+            </div>
+            <input type="text" name="name" aria-label="First name" class="form-control">
+        </div>
+        <div class="input-group">
+            <div class="input-group-prepend">
+                <span class="input-group-text">Email</span>
+            </div>
+            <input type="email" name="email" aria-label="First name" class="form-control">
+        </div>
+        <div class="input-group">
+            <div class="input-group-prepend">
+                <span class="input-group-text">Password</span>
+            </div>
+            <input type="password" name="password" aria-label="First name" class="form-control">
+        </div>
+        <div class="input-group">
+            <button type="submit" class="btn btn-primary btn-block">Submit</button>
+        </div>
+    </fieldset>
+</form>
+{{ end }}
