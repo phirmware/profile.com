@@ -1,0 +1,62 @@
+{{ define "yield" }}
+<div class="title text-center text-white mt-4">
+    <h3>Complete Your Profile</h3>
+</div>
+<form method="POST" action="/complete-profile?email={{.}}">
+    <style>
+        form {
+            width: 60vw;
+            margin: 20px auto;
+        }
+
+        input {
+            padding: 30px !important;
+        }
+
+        .input-group {
+            margin: 10px;
+        }
+
+        .input-group > button {
+            padding: 22px !important;
+            font-weight: bold !important;
+            background: #C07FF6 !important;
+            border: none !important;
+        }
+
+        .input-group-prepend {
+            min-width: 101px;
+        }
+
+        .input-group-text {
+            width: 100%;
+            background: #1E1E24;
+            color: white;
+            border: 1px solid rgb(11, 11, 12);
+        }
+    </style>
+    <fieldset>
+        <div class="input-group">
+            <div class="input-group-prepend">
+                <span class="input-group-text">Title</span>
+            </div>
+            <input type="text" name="title" aria-label="First name" class="form-control">
+        </div>
+        <div class="input-group">
+            <div class="input-group-prepend">
+                <span class="input-group-text">Summary</span>
+            </div>
+            <textarea type="text" name="summary" aria-label="First name" class="form-control"></textarea>
+        </div>
+        <div class="input-group">
+            <div class="input-group-prepend">
+                <span class="input-group-text">Skills</span>
+            </div>
+            <input type="text" name="skills" aria-label="First name" class="form-control">
+        </div>
+        <div class="input-group">
+            <button type="submit" class="btn btn-primary btn-block">Submit</button>
+        </div>
+    </fieldset>
+</form>
+{{ end }}

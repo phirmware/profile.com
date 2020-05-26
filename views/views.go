@@ -49,10 +49,10 @@ func NewView(layout, file string) *Views {
 
 // Render renders the page
 func (v *Views) Render(w http.ResponseWriter, data interface{}) {
-	if d, t := data.(Data); t {
+	if _, t := data.(Data); t {
 	} else {
 		data = &Data{
-			Yield: d,
+			Yield: data,
 		}
 	}
 	if err := v.t.ExecuteTemplate(w, v.layout, data); err != nil {
