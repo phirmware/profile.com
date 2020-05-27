@@ -1,4 +1,12 @@
 {{ define "yield" }}
+<style>
+    p {
+        color: white;
+    }
+</style>
 <p>Dashboard</p>
-<h3>Cookie : {{ . }}</h3>
+<p>Full Name: {{ .Name }}</p>
+<p>Email: {{ .Email }}</p>
+<p>Summary: {{ .Summary }}</p>
+<p>Title: {{ .Title }}</p>
 {{ end }}

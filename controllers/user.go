@@ -3,7 +3,6 @@ package controllers
 import (
 	"fmt"
 	"net/http"
-	"strings"
 
 	"profile.com/models"
 
@@ -87,7 +86,7 @@ func (u *User) Profile(w http.ResponseWriter, r *http.Request) {
 	var data views.Data
 
 	ParseForm(r, &form)
-	skills := strings.Split(form.Skills, ",")
+	// skills := strings.Split(form.Skills, ",")
 
 	user, err := u.us.ByEmail(email)
 	if err != nil {
@@ -96,7 +95,7 @@ func (u *User) Profile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user.Skills = skills
+	user.Skills = form.Skills
 	user.Summary = form.Summary
 	user.Title = form.Title
 
@@ -121,7 +120,23 @@ func (u *User) Dashboard(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/signup", http.StatusFound)
 		return
 	}
-	u.DashboardView.Render(w, cookie)
+	user, err := u.us.ByRemember(cookie.Value)
+	fmt.Printf("%+v\n", user)
+	if err != nil {
+		http.Redirect(w, r, "/signup", http.StatusFound)
+		return
+	}
+	u.DashboardView.Render(w, user)
+}
+
+// Users gets all users
+func (u *User) Users(w http.ResponseWriter, r *http.Request) {
+	users, err := u.us.All()
+	// user, err := u.us.ByEmail("chibuzor.ojukwu@gmail.com")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Fprintf(w, "%+v\n", users)
 }
 
 func (u *User) signIn(w http.ResponseWriter, user *models.User) error {

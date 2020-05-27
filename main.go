@@ -35,6 +35,7 @@ func main() {
 	r.HandleFunc("/complete-profile", userC.CompleteProfile).Queries("email", "{email}").Methods("GET")
 	r.HandleFunc("/complete-profile", userC.Profile).Queries("email", "{email}").Methods("POST")
 	r.HandleFunc("/dashboard", userC.Dashboard).Methods("GET")
+	r.HandleFunc("/users", userC.Users).Methods("GET")
 
 	fmt.Printf("Listening at port %s", serverPort)
 	http.ListenAndServe(serverPort, r)

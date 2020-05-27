@@ -39,15 +39,16 @@ const (
 
 // User defines the shape of the user db
 type User struct {
-	Name         string   `gorm:"not null"`
-	Email        string   `gorm:"not null"`
-	Password     string   `gorm:"-"`
-	PasswordHash string   `gorm:"not null"`
-	Remember     string   `gorm:"not null"`
-	RememberHash string   `gorm:"-"`
-	Title        string   `gorm:"-"`
-	Summary      string   `gorm:"-"`
-	Skills       []string `gorm:"-"`
+	gorm.Model
+	Name         string `gorm:"not null"`
+	Email        string `gorm:"not null;unique_index"`
+	Password     string `gorm:"-"`
+	PasswordHash string `gorm:"not null"`
+	Remember     string `gorm:"not null"`
+	RememberHash string
+	Title        string
+	Summary      string
+	Skills       string
 }
 
 // UserDB defines the shape of the userdb interface
@@ -56,6 +57,8 @@ type UserDB interface {
 	ByEmail(email string) (*User, error)
 	AutoMigrate()
 	Update(user *User) error
+	ByRemember(rememberToken string) (*User, error)
+	All() (*[]User, error)
 }
 
 // UserService defines the shape of the userservice
@@ -246,6 +249,15 @@ func (uv *userValidation) Update(user *User) error {
 }
 
 // ##################### User Gorm ################################ //
+
+func (ug *userGorm) All() (*[]User, error) {
+	users := []User{}
+	if err := ug.db.Find(&users).Error; err != nil {
+		return nil, err
+	}
+	return &users, nil
+}
+
 func (ug *userGorm) Create(user *User) error {
 	if err := ug.db.Create(user).Error; err != nil {
 		return err
@@ -257,13 +269,21 @@ func (ug *userGorm) ByEmail(email string) (*User, error) {
 	user := &User{}
 	err := ug.db.Where("email = ?", email).First(user).Error
 	if err != nil {
-		fmt.Println(err)
 		return nil, err
 	}
 	return user, nil
 }
 
+func (ug *userGorm) ByRemember(rememberToken string) (*User, error) {
+	var user User
+	if err := ug.db.Where("remember = ?", rememberToken).First(&user).Error; err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
 func (ug *userGorm) Update(user *User) error {
+	fmt.Println(user, "This is the user coming into the update")
 	return ug.db.Save(user).Error
 }
 
