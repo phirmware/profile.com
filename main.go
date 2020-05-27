@@ -32,6 +32,8 @@ func main() {
 	r.HandleFunc("/", staticC.Home).Methods("GET")
 	r.HandleFunc("/signup", userC.New).Methods("GET")
 	r.HandleFunc("/signup", userC.Register).Methods("POST")
+	r.HandleFunc("/login", userC.Login).Methods("GET")
+	r.HandleFunc("/login", userC.HandleLogin).Methods("POST")
 	r.HandleFunc("/complete-profile", userC.CompleteProfile).Queries("email", "{email}").Methods("GET")
 	r.HandleFunc("/complete-profile", userC.Profile).Queries("email", "{email}").Methods("POST")
 	r.HandleFunc("/dashboard", userC.Dashboard).Methods("GET")

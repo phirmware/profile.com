@@ -18,8 +18,8 @@ type Data struct {
 }
 
 // SetAlert sets the Alert object on a data struct
-func (d *Data) SetAlert(data *Data, level string, err error) {
-	data.Alert = &Alert{
+func (d *Data) SetAlert(level string, err error) {
+	d.Alert = &Alert{
 		Level:   level,
 		Message: err.Error(),
 	}

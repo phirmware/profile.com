@@ -2,7 +2,6 @@ package models
 
 import (
 	"errors"
-	"fmt"
 	"strings"
 
 	"golang.org/x/crypto/bcrypt"
@@ -22,10 +21,14 @@ var (
 	ErrEmailMissing = errors.New("models: Please input your email")
 	// ErrEmailTaken is returned when email is already in use
 	ErrEmailTaken = errors.New("models: This email is already in use")
+	// ErrInvalidCredentials is returned after an invalid login attempt
+	ErrInvalidCredentials = errors.New("models: Invalid login credentials")
 	// ErrPasswordTooShort is returned when user inputs short password
 	ErrPasswordTooShort = errors.New("models: The password you provided is too short, minimum of 8 characters")
 	// ErrPasswordNotProvided is returned when user doesnt provide a pasword
 	ErrPasswordNotProvided = errors.New("models: Please provide a password")
+	// ErrPasswordInvalid is returned when a user uses an invalid password
+	ErrPasswordInvalid = errors.New("models: Invalid Password, try again")
 	// ErrPasswordHashMissing is returned when a password hash is missing
 	ErrPasswordHashMissing = errors.New("models: No password hash")
 	// ErrRememberMissing is returned when there is no remember field set
@@ -61,9 +64,15 @@ type UserDB interface {
 	All() (*[]User, error)
 }
 
+// UserVal is the user validation interface
+type UserVal interface {
+	Authenticate(user *User) (*User, error)
+	UserDB
+}
+
 // UserService defines the shape of the userservice
 type UserService struct {
-	UserDB
+	UserVal
 }
 type userValidation struct {
 	UserDB
@@ -81,7 +90,7 @@ func NewUserService(connectionString string) (*UserService, error) {
 	}
 	uv := newUserValidation(ug)
 	return &UserService{
-		UserDB: uv,
+		UserVal: uv,
 	}, nil
 }
 
@@ -248,6 +257,24 @@ func (uv *userValidation) Update(user *User) error {
 	return uv.UserDB.Update(user)
 }
 
+func (uv *userValidation) Authenticate(user *User) (*User, error) {
+	if err := runUserValFns(user,
+		uv.checkForEmail,
+		uv.normalizeEmail,
+		uv.checkForPassword,
+	); err != nil {
+		return nil, err
+	}
+	u, err := uv.UserDB.ByEmail(user.Email)
+	if err != nil {
+		return nil, ErrInvalidCredentials
+	}
+	if err := bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(user.Password+pepper)); err != nil {
+		return nil, ErrPasswordInvalid
+	}
+	return u, nil
+}
+
 // ##################### User Gorm ################################ //
 
 func (ug *userGorm) All() (*[]User, error) {
@@ -283,7 +310,6 @@ func (ug *userGorm) ByRemember(rememberToken string) (*User, error) {
 }
 
 func (ug *userGorm) Update(user *User) error {
-	fmt.Println(user, "This is the user coming into the update")
 	return ug.db.Save(user).Error
 }
 

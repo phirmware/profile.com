@@ -12,6 +12,7 @@ import (
 // User defines the shape of the user
 type User struct {
 	NewView             *views.Views
+	LoginView           *views.Views
 	CompleteProfileView *views.Views
 	DashboardView       *views.Views
 	us                  *models.UserService
@@ -30,6 +31,11 @@ type completeForm struct {
 	Skills  string `schema:"skills"`
 }
 
+type loginForm struct {
+	Email    string `schema:"email"`
+	Password string `schema:"password"`
+}
+
 // NewUser returns the user struct
 func NewUser(connectionString string) *User {
 	us, err := models.NewUserService(connectionString)
@@ -38,6 +44,7 @@ func NewUser(connectionString string) *User {
 	}
 	return &User{
 		NewView:             views.NewView("bootstrap", "user/new"),
+		LoginView:           views.NewView("bootstrap", "user/login"),
 		CompleteProfileView: views.NewView("bootstrap", "user/profile"),
 		DashboardView:       views.NewView("bootstrap", "user/dashboard"),
 		us:                  us,
@@ -59,8 +66,8 @@ func (u *User) Register(w http.ResponseWriter, r *http.Request) {
 		Email:    form.Email,
 		Password: form.Password,
 	}
-	if err := u.us.UserDB.Create(&user); err != nil {
-		data.SetAlert(&data, views.ErrLevelDanger, err)
+	if err := u.us.Create(&user); err != nil {
+		data.SetAlert(views.ErrLevelDanger, err)
 		u.NewView.Render(w, data)
 		return
 	}
@@ -93,7 +100,7 @@ func (u *User) Profile(w http.ResponseWriter, r *http.Request) {
 
 	user, err := u.us.ByRemember(cookie.Value)
 	if err != nil {
-		data.SetAlert(&data, views.ErrLevelDanger, models.ErrInternalServerError)
+		data.SetAlert(views.ErrLevelDanger, models.ErrInternalServerError)
 		u.CompleteProfileView.Render(w, data)
 		return
 	}
@@ -104,7 +111,7 @@ func (u *User) Profile(w http.ResponseWriter, r *http.Request) {
 
 	err = u.us.Update(user)
 	if err != nil {
-		data.SetAlert(&data, views.ErrLevelDanger, models.ErrInternalServerError)
+		data.SetAlert(views.ErrLevelDanger, models.ErrInternalServerError)
 		u.CompleteProfileView.Render(w, data)
 		return
 	}
@@ -116,17 +123,46 @@ func (u *User) Profile(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/dashboard", http.StatusFound)
 }
 
+// Login renders the login view
+func (u *User) Login(w http.ResponseWriter, r *http.Request) {
+	u.LoginView.Render(w, nil)
+}
+
+// HandleLogin logs in the user
+func (u *User) HandleLogin(w http.ResponseWriter, r *http.Request) {
+	var form loginForm
+	var data views.Data
+	ParseForm(r, &form)
+
+	user := &models.User{
+		Email:    form.Email,
+		Password: form.Password,
+	}
+	foundUser, err := u.us.Authenticate(user)
+	if err != nil {
+		data.SetAlert(views.ErrLevelDanger, err)
+		u.LoginView.Render(w, data)
+		return
+	}
+	if err := u.signIn(w, foundUser); err != nil {
+		data.SetAlert(views.ErrLevelDanger, err)
+		u.LoginView.Render(w, data)
+		return
+	}
+	http.Redirect(w, r, "/dashboard", http.StatusFound)
+}
+
 // Dashboard renders the dashboard page
 func (u *User) Dashboard(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("remember_token")
 	if err != nil {
-		http.Redirect(w, r, "/signup", http.StatusFound)
+		http.Redirect(w, r, "/login", http.StatusFound)
 		return
 	}
 	user, err := u.us.ByRemember(cookie.Value)
 	fmt.Printf("%+v\n", user)
 	if err != nil {
-		http.Redirect(w, r, "/signup", http.StatusFound)
+		http.Redirect(w, r, "/login", http.StatusFound)
 		return
 	}
 	u.DashboardView.Render(w, user)

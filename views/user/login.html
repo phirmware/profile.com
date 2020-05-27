@@ -1,15 +1,9 @@
 {{ define "yield" }}
 <div class="title text-center text-white mt-4">
-    <h3>Create An Account</h3>
+    <h3>Login</h3>
 </div>
-<form method="POST" action="/signup">
+<form method="POST" action="/login">
     <fieldset>
-        <div class="input-group">
-            <div class="input-group-prepend">
-                <span class="input-group-text">Full Name</span>
-            </div>
-            <input type="text" name="name" aria-label="First name" class="form-control">
-        </div>
         <div class="input-group">
             <div class="input-group-prepend">
                 <span class="input-group-text">Email</span>
@@ -23,10 +17,10 @@
             <input type="password" name="password" aria-label="First name" class="form-control">
         </div>
         <div class="input-group">
-            <button type="submit" class="btn btn-primary btn-block">Submit</button>
+            <button type="submit" class="btn btn-primary btn-block">Sign In</button>
         </div>
         <p class="input-group">
-            Already have an account? <a href="/login"> login</a>
+            Don't have an account? <a href="/signup"> signup</a>
         </p>
     </fieldset>
 </form>
