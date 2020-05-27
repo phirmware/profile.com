@@ -64,7 +64,6 @@ func (u *User) Register(w http.ResponseWriter, r *http.Request) {
 		u.NewView.Render(w, data)
 		return
 	}
-	fmt.Println(user, "After the create method")
 	if err := u.signIn(w, &user); err != nil {
 		u.NewView.Render(w, nil)
 		return
@@ -81,14 +80,18 @@ func (u *User) CompleteProfile(w http.ResponseWriter, r *http.Request) {
 
 // Profile completes the user profile
 func (u *User) Profile(w http.ResponseWriter, r *http.Request) {
-	email := FromQuery(r, "email")
+	cookie, err := r.Cookie("remember_token")
+	if err != nil {
+		u.NewView.Render(w, nil)
+		return
+	}
 	var form completeForm
 	var data views.Data
 
 	ParseForm(r, &form)
 	// skills := strings.Split(form.Skills, ",")
 
-	user, err := u.us.ByEmail(email)
+	user, err := u.us.ByRemember(cookie.Value)
 	if err != nil {
 		data.SetAlert(&data, views.ErrLevelDanger, models.ErrInternalServerError)
 		u.CompleteProfileView.Render(w, data)

@@ -19,3 +19,12 @@ func ParseForm(r *http.Request, form interface{}) {
 func FromQuery(r *http.Request, key string) string {
 	return r.FormValue(key)
 }
+
+// // GetCookies gets the cookies from the request
+// func GetCookies(r *http.Request, name string) (*http.Cookie, error) {
+// 	cookie, err := r.Cookie(name)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return cookie, nil
+// }
