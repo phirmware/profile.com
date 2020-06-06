@@ -4,6 +4,10 @@ import (
 	"fmt"
 	"net/http"
 
+	"profile.com/middleware"
+
+	"profile.com/models"
+
 	"profile.com/controllers"
 
 	"github.com/gorilla/mux"
@@ -24,9 +28,19 @@ func main() {
 		" dbname=%s sslmode=disable",
 		host, port, user, dbname)
 
+	services, err := models.NewServices(psqlInfo)
+	if err != nil {
+		panic(err)
+	}
+	services.AutoMigrate()
+
 	staticC := controllers.NewStatic()
-	userC := controllers.NewUser(psqlInfo)
-	userC.AutoMigrate()
+	userC := controllers.NewUser(services.User)
+
+	mw := middleware.NewMiddleWare(services.User)
+	dashboard := mw.ApplyFn(userC.Dashboard)
+	completeProfile := mw.ApplyFn(userC.CompleteProfile)
+	profile := mw.ApplyFn(userC.Profile)
 
 	r := mux.NewRouter()
 	r.HandleFunc("/", staticC.Home).Methods("GET")
@@ -34,9 +48,9 @@ func main() {
 	r.HandleFunc("/signup", userC.Register).Methods("POST")
 	r.HandleFunc("/login", userC.Login).Methods("GET")
 	r.HandleFunc("/login", userC.HandleLogin).Methods("POST")
-	r.HandleFunc("/complete-profile", userC.CompleteProfile).Queries("email", "{email}").Methods("GET")
-	r.HandleFunc("/complete-profile", userC.Profile).Queries("email", "{email}").Methods("POST")
-	r.HandleFunc("/dashboard", userC.Dashboard).Methods("GET")
+	r.HandleFunc("/complete-profile", completeProfile).Queries("email", "{email}").Methods("GET")
+	r.HandleFunc("/complete-profile", profile).Queries("email", "{email}").Methods("POST")
+	r.HandleFunc("/dashboard", dashboard).Methods("GET")
 	r.HandleFunc("/users", userC.Users).Methods("GET")
 
 	fmt.Printf("Listening at port %s", serverPort)

@@ -58,7 +58,6 @@ type User struct {
 type UserDB interface {
 	Create(user *User) error
 	ByEmail(email string) (*User, error)
-	AutoMigrate()
 	Update(user *User) error
 	ByRemember(rememberToken string) (*User, error)
 	All() (*[]User, error)
@@ -71,7 +70,11 @@ type UserVal interface {
 }
 
 // UserService defines the shape of the userservice
-type UserService struct {
+type UserService interface {
+	UserVal
+}
+
+type userService struct {
 	UserVal
 }
 type userValidation struct {
@@ -83,15 +86,12 @@ type userGorm struct {
 }
 
 // NewUserService returns the userservice struct
-func NewUserService(connectionString string) (*UserService, error) {
-	ug, err := newUserGorm(connectionString)
-	if err != nil {
-		return nil, err
-	}
+func NewUserService(db *gorm.DB) UserService {
+	ug := newUserGorm(db)
 	uv := newUserValidation(ug)
-	return &UserService{
+	return &userService{
 		UserVal: uv,
-	}, nil
+	}
 }
 
 func newUserValidation(ug *userGorm) *userValidation {
@@ -102,15 +102,10 @@ func newUserValidation(ug *userGorm) *userValidation {
 	}
 }
 
-func newUserGorm(connectionString string) (*userGorm, error) {
-	db, err := gorm.Open("postgres", connectionString)
-	db.LogMode(true)
-	if err != nil {
-		return nil, err
-	}
+func newUserGorm(db *gorm.DB) *userGorm {
 	return &userGorm{
 		db: db,
-	}, nil
+	}
 }
 
 // ##################### User Service ################################ //
@@ -311,8 +306,4 @@ func (ug *userGorm) ByRemember(rememberToken string) (*User, error) {
 
 func (ug *userGorm) Update(user *User) error {
 	return ug.db.Save(user).Error
-}
-
-func (ug *userGorm) AutoMigrate() {
-	ug.db.AutoMigrate(User{})
 }

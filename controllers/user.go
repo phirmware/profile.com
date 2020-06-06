@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"profile.com/context"
 	"profile.com/models"
 
 	"profile.com/views"
@@ -15,7 +16,7 @@ type User struct {
 	LoginView           *views.Views
 	CompleteProfileView *views.Views
 	DashboardView       *views.Views
-	us                  *models.UserService
+	us                  models.UserService
 }
 
 // UserForm defines the shape of the signup form
@@ -37,11 +38,7 @@ type loginForm struct {
 }
 
 // NewUser returns the user struct
-func NewUser(connectionString string) *User {
-	us, err := models.NewUserService(connectionString)
-	if err != nil {
-		panic(err)
-	}
+func NewUser(us models.UserService) *User {
 	return &User{
 		NewView:             views.NewView("bootstrap", "user/new"),
 		LoginView:           views.NewView("bootstrap", "user/login"),
@@ -87,39 +84,23 @@ func (u *User) CompleteProfile(w http.ResponseWriter, r *http.Request) {
 
 // Profile completes the user profile
 func (u *User) Profile(w http.ResponseWriter, r *http.Request) {
-	cookie, err := r.Cookie("remember_token")
-	if err != nil {
-		u.NewView.Render(w, nil)
-		return
-	}
 	var form completeForm
 	var data views.Data
 
 	ParseForm(r, &form)
 	// skills := strings.Split(form.Skills, ",")
-
-	user, err := u.us.ByRemember(cookie.Value)
-	if err != nil {
-		data.SetAlert(views.ErrLevelDanger, models.ErrInternalServerError)
-		u.CompleteProfileView.Render(w, data)
-		return
-	}
+	user := context.GetUserFromContext(r.Context())
 
 	user.Skills = form.Skills
 	user.Summary = form.Summary
 	user.Title = form.Title
 
-	err = u.us.Update(user)
-	if err != nil {
+	if err := u.us.Update(user); err != nil {
 		data.SetAlert(views.ErrLevelDanger, models.ErrInternalServerError)
 		u.CompleteProfileView.Render(w, data)
 		return
 	}
 
-	if err := u.signIn(w, user); err != nil {
-		u.CompleteProfileView.Render(w, data)
-		return
-	}
 	http.Redirect(w, r, "/dashboard", http.StatusFound)
 }
 
@@ -154,17 +135,7 @@ func (u *User) HandleLogin(w http.ResponseWriter, r *http.Request) {
 
 // Dashboard renders the dashboard page
 func (u *User) Dashboard(w http.ResponseWriter, r *http.Request) {
-	cookie, err := r.Cookie("remember_token")
-	if err != nil {
-		http.Redirect(w, r, "/login", http.StatusFound)
-		return
-	}
-	user, err := u.us.ByRemember(cookie.Value)
-	fmt.Printf("%+v\n", user)
-	if err != nil {
-		http.Redirect(w, r, "/login", http.StatusFound)
-		return
-	}
+	user := context.GetUserFromContext(r.Context())
 	u.DashboardView.Render(w, user)
 }
 
@@ -186,9 +157,4 @@ func (u *User) signIn(w http.ResponseWriter, user *models.User) error {
 	}
 	http.SetCookie(w, cookie)
 	return nil
-}
-
-// AutoMigrate automigrate creates the table in the db
-func (u *User) AutoMigrate() {
-	u.us.AutoMigrate()
 }
