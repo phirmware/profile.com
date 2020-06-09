@@ -1,5 +1,9 @@
 package views
 
+import (
+	"profile.com/models"
+)
+
 const (
 	// ErrLevelDanger is error color for bootstrap alert
 	ErrLevelDanger = "danger"
@@ -14,6 +18,7 @@ type Alert struct {
 // Data defines the shape of the page data
 type Data struct {
 	Alert *Alert
+	User  *models.User
 	Yield interface{}
 }
 

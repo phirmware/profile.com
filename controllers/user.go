@@ -50,7 +50,7 @@ func NewUser(us models.UserService) *User {
 
 // New handles route /signup
 func (u *User) New(w http.ResponseWriter, r *http.Request) {
-	u.NewView.Render(w, nil)
+	u.NewView.Render(w, r, nil)
 }
 
 // Register creates a new user in the database
@@ -65,11 +65,11 @@ func (u *User) Register(w http.ResponseWriter, r *http.Request) {
 	}
 	if err := u.us.Create(&user); err != nil {
 		data.SetAlert(views.ErrLevelDanger, err)
-		u.NewView.Render(w, data)
+		u.NewView.Render(w, r, data)
 		return
 	}
 	if err := u.signIn(w, &user); err != nil {
-		u.NewView.Render(w, nil)
+		u.NewView.Render(w, r, nil)
 		return
 	}
 	uri := fmt.Sprintf("/complete-profile?email=%s", user.Email)
@@ -79,7 +79,7 @@ func (u *User) Register(w http.ResponseWriter, r *http.Request) {
 // CompleteProfile renders the page to complete profile
 func (u *User) CompleteProfile(w http.ResponseWriter, r *http.Request) {
 	email := FromQuery(r, "email")
-	u.CompleteProfileView.Render(w, email)
+	u.CompleteProfileView.Render(w, r, email)
 }
 
 // Profile completes the user profile
@@ -97,7 +97,7 @@ func (u *User) Profile(w http.ResponseWriter, r *http.Request) {
 
 	if err := u.us.Update(user); err != nil {
 		data.SetAlert(views.ErrLevelDanger, models.ErrInternalServerError)
-		u.CompleteProfileView.Render(w, data)
+		u.CompleteProfileView.Render(w, r, data)
 		return
 	}
 
@@ -106,7 +106,7 @@ func (u *User) Profile(w http.ResponseWriter, r *http.Request) {
 
 // Login renders the login view
 func (u *User) Login(w http.ResponseWriter, r *http.Request) {
-	u.LoginView.Render(w, nil)
+	u.LoginView.Render(w, r, nil)
 }
 
 // HandleLogin logs in the user
@@ -122,12 +122,12 @@ func (u *User) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	foundUser, err := u.us.Authenticate(user)
 	if err != nil {
 		data.SetAlert(views.ErrLevelDanger, err)
-		u.LoginView.Render(w, data)
+		u.LoginView.Render(w, r, data)
 		return
 	}
 	if err := u.signIn(w, foundUser); err != nil {
 		data.SetAlert(views.ErrLevelDanger, err)
-		u.LoginView.Render(w, data)
+		u.LoginView.Render(w, r, data)
 		return
 	}
 	http.Redirect(w, r, "/dashboard", http.StatusFound)
@@ -136,7 +136,7 @@ func (u *User) HandleLogin(w http.ResponseWriter, r *http.Request) {
 // Dashboard renders the dashboard page
 func (u *User) Dashboard(w http.ResponseWriter, r *http.Request) {
 	user := context.GetUserFromContext(r.Context())
-	u.DashboardView.Render(w, user)
+	u.DashboardView.Render(w, r, user)
 }
 
 // Users gets all users

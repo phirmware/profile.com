@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"path/filepath"
 	"text/template"
+
+	"profile.com/context"
 )
 
 const (
@@ -48,14 +50,19 @@ func NewView(layout, file string) *Views {
 }
 
 // Render renders the page
-func (v *Views) Render(w http.ResponseWriter, data interface{}) {
-	if _, t := data.(Data); t {
+func (v *Views) Render(w http.ResponseWriter, r *http.Request, data interface{}) {
+	var vd Data
+	if d, t := data.(Data); t {
+		vd = d
 	} else {
-		data = &Data{
+		vd = Data{
 			Yield: data,
 		}
 	}
-	if err := v.t.ExecuteTemplate(w, v.layout, data); err != nil {
+
+	user := context.GetUserFromContext(r.Context())
+	vd.User = user
+	if err := v.t.ExecuteTemplate(w, v.layout, vd); err != nil {
 		panic(err)
 	}
 }

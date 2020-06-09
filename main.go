@@ -37,10 +37,11 @@ func main() {
 	staticC := controllers.NewStatic()
 	userC := controllers.NewUser(services.User)
 
-	mw := middleware.NewMiddleWare(services.User)
-	dashboard := mw.ApplyFn(userC.Dashboard)
-	completeProfile := mw.ApplyFn(userC.CompleteProfile)
-	profile := mw.ApplyFn(userC.Profile)
+	requireUserMW := middleware.NewRequireUserMiddleWare(services.User)
+	userMW := middleware.NewUserMiddleWare(services.User)
+	dashboard := requireUserMW.ApplyFn(userC.Dashboard)
+	completeProfile := requireUserMW.ApplyFn(userC.CompleteProfile)
+	profile := requireUserMW.ApplyFn(userC.Profile)
 
 	r := mux.NewRouter()
 	r.HandleFunc("/", staticC.Home).Methods("GET")
@@ -54,5 +55,5 @@ func main() {
 	r.HandleFunc("/users", userC.Users).Methods("GET")
 
 	fmt.Printf("Listening at port %s", serverPort)
-	http.ListenAndServe(serverPort, r)
+	http.ListenAndServe(serverPort, userMW.Apply(r))
 }

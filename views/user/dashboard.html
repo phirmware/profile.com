@@ -48,18 +48,18 @@
         </div>
         <div class="col-md-8">
             <div class="card-body">
-                <h5 class="card-title">{{ .Name }}</h5>
-                <h6 class="card-subtitle mb-2 text-muted">{{ .Email }}</h6>
-                <p class="card-text">{{ .Title }}</p>
-                <p class="card-text"> {{ .Summary }}</p>
-                <p class="card-text"><small class="text-muted">{{ .Skills }}</small></p>
+                <h5 class="card-title">{{ .Yield.Name }}</h5>
+                <h6 class="card-subtitle mb-2 text-muted">{{ .Yield.Email }}</h6>
+                <p class="card-text">{{ .Yield.Title }}</p>
+                <p class="card-text"> {{ .Yield.Summary }}</p>
+                <p class="card-text"><small class="text-muted">{{ .Yield.Skills }}</small></p>
             </div>
         </div>
     </div>
 </div>
 <div class="card">
     <div class="card-body">
-        <a href="/complete-profile?email={{ .Email }}" class="btn btn-primary">Edit Profile</a>
+        <a href="/complete-profile?email={{ .Yield.Email }}" class="btn btn-primary">Edit Profile</a>
         <a href="https://github.com/phirmware" class="btn btn-secondary">Github</a>
     </div>
 </div>

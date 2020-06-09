@@ -66,9 +66,15 @@
     </h3>
     <hr>
     <div class="text-center">
+        {{ if .User }}
+        <a href="/dashboard" class="btn btn-primary">
+            View Profile
+        </a>
+        {{ else }}
         <a href="/signup" class="btn btn-primary">
             Create a Profile
         </a>
+        {{ end }}
     </div>
 </div>
 
